@@ -1,4 +1,4 @@
-import { SystemHealthData, SecurityStatistics, SecurityEvent, AuthUser } from '../types/index.ts';
+import { SystemHealthData, SecurityStatistics, SecurityEvent, AuthUser, LockedAccount } from '../types/index.ts';
 import { sampleSecurityStats, sampleSecurityEvents } from '../data/sampleData.ts';
 
 const API_BASE = '/api';
@@ -80,13 +80,17 @@ export const apiService = {
   },
 
   /**
-   * Authenticate user with password comparison
+   * Authenticate user with password comparison and brute-force tracking
    */
   async login(payload: { email: string; password: string }): Promise<{
     success: boolean;
     user?: AuthUser;
     token?: string;
     message?: string;
+    accountLocked?: boolean;
+    lockUntil?: string | null;
+    remainingAttempts?: number;
+    attempts?: number;
   }> {
     try {
       const res = await fetch(`${API_BASE}/auth/login`, {
@@ -97,12 +101,24 @@ export const apiService = {
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        return { success: false, message: json.message || 'Invalid email or password.' };
+        return {
+          success: false,
+          message: json.message || 'Invalid email or password.',
+          accountLocked: Boolean(json.data?.accountLocked || res.status === 423),
+          lockUntil: json.data?.lockUntil || null,
+          remainingAttempts: json.data?.remainingAttempts,
+          attempts: json.data?.attempts,
+        };
       }
       if (json.data?.token) {
         this.setToken(json.data.token);
       }
-      return { success: true, user: json.data?.user, token: json.data?.token, message: json.message };
+      return {
+        success: true,
+        user: json.data?.user,
+        token: json.data?.token,
+        message: json.message,
+      };
     } catch (err: any) {
       return { success: false, message: 'Unable to connect to the server. Please try again.' };
     }
@@ -183,5 +199,69 @@ export const apiService = {
       return sampleSecurityEvents;
     }
   },
+
+  /**
+   * Fetch currently locked accounts from MongoDB
+   */
+  async getLockedAccounts(): Promise<LockedAccount[]> {
+    try {
+      const res = await fetch(`${API_BASE}/security/locked-accounts`, {
+        headers: getAuthHeaders(),
+        credentials: 'include',
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return json.data || [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Unlock an account manually (Demonstration / Admin capability)
+   */
+  async unlockAccount(email: string, reason?: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/security/unlock`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ email, reason }),
+      });
+      const json = await res.json();
+      return {
+        success: Boolean(json.success),
+        message: json.message || 'Account unlocked successfully.',
+      };
+    } catch (err: any) {
+      return { success: false, message: 'Failed to communicate with server.' };
+    }
+  },
+
+  /**
+   * Simulate a Brute-Force Attack against an account (Demonstration Tool)
+   */
+  async simulateBruteForceAttack(
+    email: string,
+    attempts: number = 5
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    try {
+      const res = await fetch(`${API_BASE}/security/simulate-attack`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ email, attempts }),
+      });
+      const json = await res.json();
+      return {
+        success: Boolean(json.success),
+        message: json.message || 'Simulation complete.',
+        data: json.data,
+      };
+    } catch (err: any) {
+      return { success: false, message: 'Simulation request failed.' };
+    }
+  },
 };
+
 

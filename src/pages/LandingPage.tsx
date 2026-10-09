@@ -80,7 +80,7 @@ export const LandingPage: React.FC = () => {
       <section className="relative overflow-hidden rounded-2xl border border-gray-800/90 bg-gradient-to-b from-gray-900/80 via-gray-950/90 to-[#030712] p-8 md:p-14 text-center space-y-6">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/70 border border-blue-800/60 text-blue-300 text-xs font-mono">
           <Shield className="w-3.5 h-3.5 text-blue-400" />
-          <span>College Cybersecurity Project • Architecture Phase 1</span>
+          <span>College Cybersecurity Project • Phase 3: Brute-Force Detection & Lockout</span>
         </div>
 
         <div className="max-w-3xl mx-auto space-y-4">

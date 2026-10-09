@@ -10,9 +10,9 @@ export const PhaseBanner: React.FC = () => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span className="font-semibold text-emerald-400 font-mono">[PHASE 2 ACTIVE]</span>
+          <span className="font-semibold text-emerald-400 font-mono">[PHASE 3 ACTIVE]</span>
           <span className="text-gray-300">
-            Real bcrypt password hashing, MongoDB persistence & JWT sessions operational. Brute-force lockout thresholds reserved for Phase 3.
+            Brute-Force Attack Detection, Rolling 15-Min Window Tracking & Automatic 15-Min Account Lockout Operational in MongoDB.
           </span>
         </div>
         <div className="flex items-center gap-2 font-mono text-[11px] text-gray-400">

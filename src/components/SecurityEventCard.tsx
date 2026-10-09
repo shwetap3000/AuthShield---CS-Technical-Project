@@ -1,7 +1,7 @@
 import React from 'react';
 import { SecurityEvent } from '../types/index.ts';
 import { StatusBadge } from './StatusBadge.tsx';
-import { ShieldAlert, ShieldCheck, AlertTriangle, Lock, Clock, Terminal } from 'lucide-react';
+import { ShieldAlert, ShieldCheck, AlertTriangle, Lock, Unlock, Clock, Terminal } from 'lucide-react';
 
 interface SecurityEventCardProps {
   event: SecurityEvent;
@@ -11,9 +11,12 @@ export const SecurityEventCard: React.FC<SecurityEventCardProps> = ({ event }) =
   const getEventIcon = () => {
     switch (event.eventType) {
       case 'BRUTE_FORCE_TRIGGERED':
+      case 'BRUTE_FORCE_DETECTED':
         return <ShieldAlert className="w-5 h-5 text-red-400" />;
       case 'ACCOUNT_LOCKED':
         return <Lock className="w-5 h-5 text-amber-400" />;
+      case 'ACCOUNT_UNLOCKED':
+        return <Unlock className="w-5 h-5 text-emerald-400" />;
       case 'LOGIN_SUCCESS':
         return <ShieldCheck className="w-5 h-5 text-emerald-400" />;
       case 'LOGIN_FAILURE':

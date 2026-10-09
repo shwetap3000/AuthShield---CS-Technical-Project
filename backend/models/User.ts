@@ -5,6 +5,8 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string; // Plaintext passwords MUST NEVER be stored
   failedLoginAttempts: number;
+  firstFailedLoginAt: Date | null;
+  lastFailedLoginAt: Date | null;
   accountLocked: boolean;
   lockUntil: Date | null;
   lastLogin: Date | null;
@@ -41,13 +43,23 @@ const UserSchema = new Schema<IUser>(
       default: 0,
       min: 0,
     },
+    firstFailedLoginAt: {
+      type: Date,
+      default: null,
+    },
+    lastFailedLoginAt: {
+      type: Date,
+      default: null,
+    },
     accountLocked: {
       type: Boolean,
       default: false,
+      index: true,
     },
     lockUntil: {
       type: Date,
       default: null,
+      index: true,
     },
     lastLogin: {
       type: Date,

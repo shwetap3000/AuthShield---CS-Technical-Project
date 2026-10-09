@@ -4,7 +4,9 @@ export type EventType =
   | 'LOGIN_SUCCESS'
   | 'LOGIN_FAILURE'
   | 'BRUTE_FORCE_TRIGGERED'
+  | 'BRUTE_FORCE_DETECTED'
   | 'ACCOUNT_LOCKED'
+  | 'ACCOUNT_UNLOCKED'
   | 'SUSPICIOUS_IP_DETECTED'
   | 'PASSWORD_RESET_REQUESTED'
   | 'LOGOUT';
@@ -29,6 +31,21 @@ export interface SecurityStatistics {
   systemStatus: string;
   activeLockouts: number;
   lastScanTime: string;
+  phase?: number;
+  policy?: {
+    maxFailedAttempts: number;
+    detectionWindowMinutes: number;
+    lockoutDurationMinutes: number;
+  };
+}
+
+export interface LockedAccount {
+  id: string;
+  name: string;
+  email: string;
+  failedLoginAttempts: number;
+  lockUntil: string;
+  remainingMinutes: number;
 }
 
 export interface LoginActivityItem {
@@ -50,6 +67,7 @@ export interface AuthUser {
   role: string;
   accountStatus: 'ACTIVE' | 'LOCKED';
   failedLoginAttempts: number;
+  lockUntil?: string | null;
   lastLogin: string | null;
   createdAt: string;
 }

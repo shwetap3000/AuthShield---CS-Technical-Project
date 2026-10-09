@@ -10,4 +10,7 @@ export const config = {
   sessionSecret: process.env.SESSION_SECRET || 'dev-session-secret-change-in-production',
   jwtSecret: process.env.JWT_SECRET || 'dev-jwt-secret-change-in-production',
   isDev: (process.env.NODE_ENV || 'development') !== 'production',
+  maxFailedAttempts: parseInt(process.env.AUTH_MAX_FAILED_ATTEMPTS || '5', 10),
+  windowMinutes: parseInt(process.env.AUTH_WINDOW_MINUTES || '15', 10),
+  lockoutMinutes: parseInt(process.env.AUTH_LOCKOUT_MINUTES || '15', 10),
 };

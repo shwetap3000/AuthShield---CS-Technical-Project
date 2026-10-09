@@ -26,10 +26,11 @@ const clearAuthCookie = (res: Response) => {
 
 export const getAuthStatus = (_req: Request, res: Response) => {
   return sendSuccess(res, 'AuthShield Authentication Service Initialized', {
-    phase: 'Phase 2 - Real Authentication System Active',
-    hashingEngine: 'bcryptjs (10 rounds)',
+    phase: 'Phase 3 - Brute-Force Detection & Account Lockout Active',
+    hashingEngine: 'bcryptjs (10 salt rounds)',
     tokenStrategy: 'Signed JWT with HTTP-only Cookies & Bearer fallback',
-    securityLogging: 'Active MongoDB Audit Logging',
+    securityLogging: 'Active MongoDB Audit Logging with Anomaly Detection',
+    threshold: '5 failed attempts within 15 minutes triggers 15-minute lockout',
   });
 };
 
@@ -97,7 +98,14 @@ export const login = async (req: Request, res: Response) => {
   } catch (err: any) {
     const statusCode = err.status || 401;
     const message = err.message || 'Invalid email or password.';
-    return sendError(res, message, 'AUTH_FAILED', statusCode);
+    const code = err.code || 'AUTH_FAILED';
+    return sendError(res, message, code, statusCode, {
+      accountLocked: statusCode === 423 || err.code === 'ACCOUNT_LOCKED',
+      lockUntil: err.lockUntil || null,
+      attempts: err.attempts,
+      maxAttempts: err.maxAttempts,
+      remainingAttempts: err.remainingAttempts,
+    });
   }
 };
 

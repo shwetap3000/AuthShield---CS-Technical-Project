@@ -4,7 +4,9 @@ export type SecurityEventType =
   | 'LOGIN_SUCCESS'
   | 'LOGIN_FAILURE'
   | 'BRUTE_FORCE_TRIGGERED'
+  | 'BRUTE_FORCE_DETECTED'
   | 'ACCOUNT_LOCKED'
+  | 'ACCOUNT_UNLOCKED'
   | 'SUSPICIOUS_IP_DETECTED'
   | 'PASSWORD_RESET_REQUESTED'
   | 'LOGOUT';
@@ -38,7 +40,9 @@ const SecurityLogSchema = new Schema<ISecurityLog>(
         'LOGIN_SUCCESS',
         'LOGIN_FAILURE',
         'BRUTE_FORCE_TRIGGERED',
+        'BRUTE_FORCE_DETECTED',
         'ACCOUNT_LOCKED',
+        'ACCOUNT_UNLOCKED',
         'SUSPICIOUS_IP_DETECTED',
         'PASSWORD_RESET_REQUESTED',
         'LOGOUT',

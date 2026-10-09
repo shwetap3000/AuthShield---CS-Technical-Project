@@ -1,30 +1,45 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User.ts';
 import { SecurityLog } from '../models/SecurityLog.ts';
+import { AuthService } from '../services/authService.ts';
+import { securityPolicy } from '../config/securityConfig.ts';
 import { sendSuccess, sendError } from '../utils/apiResponse.ts';
 
 export const getSecurityStats = async (_req: Request, res: Response) => {
   try {
-    const [totalUsers, successfulLogins, failedAttempts, recentLockouts] = await Promise.all([
-      User.countDocuments(),
-      SecurityLog.countDocuments({ eventType: 'LOGIN_SUCCESS' }),
-      SecurityLog.countDocuments({ eventType: 'LOGIN_FAILURE' }),
-      SecurityLog.countDocuments({ eventType: 'ACCOUNT_LOCKED' }),
-    ]);
+    const now = new Date();
+    const [totalUsers, successfulLogins, failedAttempts, blockedAttacks, activeLockouts] =
+      await Promise.all([
+        User.countDocuments(),
+        SecurityLog.countDocuments({ eventType: 'LOGIN_SUCCESS' }),
+        SecurityLog.countDocuments({ eventType: 'LOGIN_FAILURE' }),
+        SecurityLog.countDocuments({
+          eventType: { $in: ['BRUTE_FORCE_DETECTED', 'BRUTE_FORCE_TRIGGERED', 'ACCOUNT_LOCKED'] },
+        }),
+        User.countDocuments({
+          accountLocked: true,
+          lockUntil: { $gt: now },
+        }),
+      ]);
 
     const stats = {
       totalUsers,
       successfulLogins,
       failedAttempts,
-      blockedAttacks: recentLockouts, // Will be driven by Phase 3 lockout engine
-      systemStatus: 'PROTECTED',
-      activeLockouts: 0, // Reserved for Phase 3
+      blockedAttacks,
+      systemStatus: activeLockouts > 0 ? 'ALERT' : 'PROTECTED',
+      activeLockouts,
       lastScanTime: 'Real-time (MongoDB Live)',
       isRealData: true,
-      phase: 2,
+      phase: 3,
+      policy: {
+        maxFailedAttempts: securityPolicy.maxFailedAttempts,
+        detectionWindowMinutes: securityPolicy.detectionWindowMinutes,
+        lockoutDurationMinutes: securityPolicy.lockoutDurationMinutes,
+      },
     };
 
-    return sendSuccess(res, 'Live security statistics retrieved from MongoDB', stats);
+    return sendSuccess(res, 'Live Phase 3 security statistics retrieved from MongoDB', stats);
   } catch (error: any) {
     return sendError(res, 'Failed to calculate security telemetry.', 'STATS_QUERY_FAILED', 500);
   }
@@ -62,10 +77,83 @@ export const getSecurityLogs = async (req: Request, res: Response) => {
       logs,
       count: logs.length,
       isRealData: true,
-      phase: 2,
+      phase: 3,
     });
   } catch (error: any) {
     return sendError(res, 'Failed to retrieve security audit logs.', 'LOGS_QUERY_FAILED', 500);
   }
+};
+
+export const getLockedAccounts = async (_req: Request, res: Response) => {
+  try {
+    const now = new Date();
+    const lockedUsers = await User.find({
+      accountLocked: true,
+      lockUntil: { $gt: now },
+    })
+      .select('name email failedLoginAttempts lockUntil createdAt')
+      .lean();
+
+    const accounts = lockedUsers.map((u: any) => {
+      const lockUntil = new Date(u.lockUntil);
+      const remainingMinutes = Math.max(1, Math.ceil((lockUntil.getTime() - now.getTime()) / 60000));
+      return {
+        id: u._id.toString(),
+        name: u.name,
+        email: u.email,
+        failedLoginAttempts: u.failedLoginAttempts,
+        lockUntil: u.lockUntil.toISOString(),
+        remainingMinutes,
+      };
+    });
+
+    return sendSuccess(res, 'Active account lockouts retrieved from MongoDB', accounts);
+  } catch (error: any) {
+    return sendError(res, 'Failed to fetch locked accounts.', 'LOCKED_ACCOUNTS_QUERY_FAILED', 500);
+  }
+};
+
+export const unlockAccountHandler = async (req: Request, res: Response) => {
+  try {
+    const { email, reason } = req.body;
+    if (!email) {
+      return sendError(res, 'Email address is required to unlock account.', 'VALIDATION_ERROR', 400);
+    }
+
+    const result = await AuthService.unlockAccount(
+      email,
+      reason || 'Administrative analyst console override'
+    );
+    return sendSuccess(res, result.message, result.user);
+  } catch (error: any) {
+    const status = error.status || 400;
+    return sendError(res, error.message || 'Unable to unlock account.', 'UNLOCK_FAILED', status);
+  }
+};
+
+export const simulateBruteForceHandler = async (req: Request, res: Response) => {
+  try {
+    const { email, attempts } = req.body;
+    if (!email) {
+      return sendError(res, 'Target email address is required.', 'VALIDATION_ERROR', 400);
+    }
+
+    const count = parseInt(attempts || '5', 10);
+    const result = await AuthService.simulateBruteForceAttack(email, count);
+
+    return sendSuccess(res, result.eventsSummary, result);
+  } catch (error: any) {
+    const status = error.status || 400;
+    return sendError(res, error.message || 'Simulation failed.', 'SIMULATION_ERROR', status);
+  }
+};
+
+export const getSecurityPolicy = (_req: Request, res: Response) => {
+  return sendSuccess(res, 'Active security threshold configuration', {
+    maxFailedAttempts: securityPolicy.maxFailedAttempts,
+    detectionWindowMinutes: securityPolicy.detectionWindowMinutes,
+    lockoutDurationMinutes: securityPolicy.lockoutDurationMinutes,
+    rateLimitMaxRequests: securityPolicy.rateLimit.maxRequests,
+  });
 };
 

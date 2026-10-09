@@ -7,7 +7,7 @@ export const getHealth = (_req: Request, res: Response) => {
 
   const healthData = {
     system: 'AuthShield – Secure Authentication & Brute-Force Detection System',
-    version: '2.0.0-phase2',
+    version: '3.0.0-phase3',
     status: 'OPERATIONAL',
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.floor(process.uptime()),
@@ -20,9 +20,9 @@ export const getHealth = (_req: Request, res: Response) => {
       driver: 'Mongoose / MongoDB',
     },
     modules: {
-      authentication: 'Active (bcryptjs password hashing + JWT session token)',
-      bruteForceDetection: 'Failure Counter Active (Phase 3 Lockout Engine Pending)',
-      securityAuditLogging: 'Active (MongoDB SecurityLog Collection)',
+      authentication: 'Active (bcryptjs salted hashing + JWT session token)',
+      bruteForceDetection: 'Active (5-attempt rolling threshold with automatic 15-minute account lockout)',
+      securityAuditLogging: 'Active (MongoDB SecurityLog collection with real-time anomaly tracking)',
     },
   };
 

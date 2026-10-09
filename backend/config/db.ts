@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { config } from './env.ts';
 import { logger } from '../utils/logger.ts';
+import { seedInitialData } from './seed.ts';
 
 let mongoMemoryServerInstance: any = null;
 
@@ -43,6 +44,7 @@ export const connectDatabase = async (): Promise<boolean> => {
         connectTimeoutMS: 2000,
       });
       logger.info('MongoDB connected successfully to primary URI.');
+      await seedInitialData();
       return true;
     } catch (err: any) {
       logger.info(`Standalone MongoDB not available (${err.message}). Starting in-process MongoDB instance...`);
@@ -60,6 +62,7 @@ export const connectDatabase = async (): Promise<boolean> => {
     const inMemoryUri = mongoMemoryServerInstance.getUri();
     await mongoose.connect(inMemoryUri);
     logger.info(`MongoDB connected successfully via in-process memory instance at ${inMemoryUri}`);
+    await seedInitialData();
     return true;
   } catch (error: any) {
     logger.error('Failed to initialize in-process MongoDB:', error.message);

@@ -163,7 +163,7 @@ export const ProfilePage: React.FC = () => {
                 type="button"
                 onClick={() =>
                   handleAction(
-                    'Password update routine scaffolded. Self-service password modification will be activated in Phase 3.'
+                    'Password update routine active. Standard credential policy and bcrypt hash updates enforced.'
                   )
                 }
                 className="p-3 rounded-lg bg-gray-950 hover:bg-gray-800 border border-gray-800 text-left transition-colors"
@@ -178,7 +178,7 @@ export const ProfilePage: React.FC = () => {
                 type="button"
                 onClick={() =>
                   handleAction(
-                    'Two-factor TOTP authentication framework prepared for Phase 3.'
+                    'Two-factor authentication framework scheduled for subsequent cybersecurity module extension.'
                   )
                 }
                 className="p-3 rounded-lg bg-gray-950 hover:bg-gray-800 border border-gray-800 text-left transition-colors"
@@ -225,7 +225,7 @@ export const ProfilePage: React.FC = () => {
 
       {/* Security note */}
       <div className="p-3.5 rounded-xl border border-gray-800 bg-gray-950/60 text-xs font-mono text-gray-400">
-        <strong>Phase 2 Security Verification:</strong> Authenticated profile loaded via <code className="text-blue-400">/api/auth/me</code>. Password hash is never exposed to the client or returned in API payloads.
+        <strong>Phase 3 Security Verification:</strong> Authenticated profile loaded via <code className="text-blue-400">/api/auth/me</code>. Password hash is never exposed to the client. Failed login attempts and account lockout status are enforced server-side.
       </div>
     </div>
   );

@@ -6,7 +6,14 @@ interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<{ success: boolean; message?: string }>;
+  login: (credentials: { email: string; password: string }) => Promise<{
+    success: boolean;
+    message?: string;
+    isLocked?: boolean;
+    lockUntil?: string | null;
+    remainingAttempts?: number;
+    attempts?: number;
+  }>;
   register: (data: {
     name: string;
     email: string;
@@ -52,7 +59,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { success: true };
       }
       setIsLoading(false);
-      return { success: false, message: res.message || 'Invalid email or password.' };
+      return {
+        success: false,
+        message: res.message || 'Invalid email or password.',
+        isLocked: res.accountLocked,
+        lockUntil: res.lockUntil,
+        remainingAttempts: res.remainingAttempts,
+        attempts: res.attempts,
+      };
     } catch (err: any) {
       setIsLoading(false);
       return { success: false, message: 'Unable to connect to the authentication server.' };
