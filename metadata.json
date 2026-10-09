@@ -1,0 +1,6 @@
+{
+  "name": "AuthShield – Secure Authentication & Brute-Force Detection System",
+  "description": "A college-level cybersecurity project demonstrating secure authentication, account protection, and brute-force attack detection architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
